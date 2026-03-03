@@ -10,7 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")   // Base URL (optional but recommended)
+@RequestMapping("/api")
 public class CategoryController {
 
     private final CategoryService categoryService;
@@ -34,17 +34,11 @@ public class CategoryController {
     }
 
     // DELETE
-    @RequestMapping(value = "/admin/categories/{categoryId}", method = RequestMethod.DELETE)
+    @DeleteMapping("/admin/categories/{categoryId}")
     public ResponseEntity<String> deleteCategory(@PathVariable Long categoryId) {
 
-        String status = categoryService.deleteCategory(categoryId);
-
-        if ("success".equals(status)) {
-            return ResponseEntity.ok("Category deleted successfully");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Category not found");
-        }
+        categoryService.deleteCategory(categoryId);
+        return ResponseEntity.ok("Category deleted successfully");
     }
 
     // PUT

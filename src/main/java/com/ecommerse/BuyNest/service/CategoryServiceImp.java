@@ -1,53 +1,51 @@
 package com.ecommerse.BuyNest.service;
 
 import com.ecommerse.BuyNest.model.Category;
+import com.ecommerse.BuyNest.repositories.CategoryRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class CategoryServiceImp implements CategoryService {
-    private List<Category> categoryList = new ArrayList<>();
-    private Long categoryId = 1L;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
     @Override
     public List<Category> getCategoryList() {
-        return categoryList;
+        return categoryRepository.findAll();
     }
 
     @Override
     public void createCategory(Category category) {
-        category.setCategoryId(categoryId++);
-        categoryList.add(category);
+        categoryRepository.save(category);
     }
 
     @Override
-    public String deleteCategory(Long categoryId) {
-        Category category = categoryList.stream().filter(c -> c.getCategoryId().equals(categoryId)).findFirst().orElse(null);
-        if (category != null) {
-            categoryList.remove(category);
-        }
-        else {
-            return "Category not found";
-        }
-        return "success";
+    public void deleteCategory(Long categoryId) {
 
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found")
+                );
+
+        categoryRepository.delete(category);
     }
 
     @Override
     public Category updateCategory(Category category, Long categoryId) {
-        Category curr = categoryList.stream().filter(c -> c.getCategoryId().equals(categoryId)).findFirst().orElse(null);
-        if (curr != null) {
-            curr.setCategoryId(category.getCategoryId());
-            curr.setCategoryName(category.getCategoryName());
-            return curr;
 
-        }
-        else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found");
-        }
+        return categoryRepository.findById(categoryId)
+                .map(existingCategory -> {
+                    existingCategory.setCategoryName(category.getCategoryName());
+                    return categoryRepository.save(existingCategory);
+                })
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found")
+                );
     }
-
 }
